@@ -6,8 +6,6 @@ import boto3
 app = Chalice(app_name='mytodo')
 app.debug = True
 _DB = None
-_USER_DB = None
-
 
 def get_app_db():
     global _DB
