@@ -1,15 +1,30 @@
 from uuid import uuid4
 
-# from chalice import Chalice
+from boto3.dynamodb.conditions import Key
 
 
-# app = Chalice(app_name='mytodo')
-# app.debug = True
-# _DB = None
 DEFAULT_USERNAME = 'default'
 
 
-class InMemoryTodoDB(object):
+class TodoDB(object):
+    def list_items(self):
+        pass
+
+    def add_item(self, description, metadata=None):
+        pass
+
+    def get_item(self, uid):
+        pass
+
+    def delete_item(self, uid):
+        pass
+
+    def update_item(self, uid, description=None, state=None,
+                    metadata=None):
+        pass
+
+
+class InMemoryTodoDB(TodoDB):
     def __init__(self, state=None):
         if state is None:
             state = {}
@@ -22,7 +37,7 @@ class InMemoryTodoDB(object):
         return all_items
 
     def list_items(self, username=DEFAULT_USERNAME):
-        return list(self._state.get(username, {}).values())
+        return self._state.get(username, {}).values()
 
     def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
         if username not in self._state:
@@ -54,43 +69,58 @@ class InMemoryTodoDB(object):
             item['metadata'] = metadata
 
 
-# def get_app_db():
-#     global _DB
-#     if _DB is None:
-#         _DB = InMemoryTodoDB()
-#     return _DB
+class DynamoDBTodo(TodoDB):
+    def __init__(self, table_resource):
+        self._table = table_resource
 
+    def list_all_items(self):
+        response = self._table.scan()
+        return response['Items']
 
-# @app.route('/todos', methods=['GET'])
-# def get_todos():
-#     return get_app_db().list_items()
+    def list_items(self, username=DEFAULT_USERNAME):
+        response = self._table.query(
+            KeyConditionExpression=Key('username').eq(username)
+        )
+        return response['Items']
 
+    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
+        uid = str(uuid4())
+        self._table.put_item(
+            Item={
+                'username': username,
+                'uid': uid,
+                'description': description,
+                'state': 'unstarted',
+                'metadata': metadata if metadata is not None else {},
+            }
+        )
+        return uid
 
-# # Following the example get_todos() function, add the rest of the required
-# # routes here...
+    def get_item(self, uid, username=DEFAULT_USERNAME):
+        response = self._table.get_item(
+            Key={
+                'username': username,
+                'uid': uid,
+            },
+        )
+        return response['Item']
 
-# @app.route('/todos', methods=['POST'])
-# def add_new_todo():
-#     body = app.current_request.json_body
-#     return get_app_db().add_item(description=body["description"], metadata=body.get('metatdata'), )
+    def delete_item(self, uid, username=DEFAULT_USERNAME):
+        self._table.delete_item(
+            Key={
+                'username': username,
+                'uid': uid,
+            }
+        )
 
-
-# @app.route('/todos/{uid}', methods=['GET'])
-# # remember to pass the parameter in!
-# def get_todo(uid):
-#     return get_app_db().get_item(uid)
-
-# @app.route('/todos/{uid}', methods=['DELETE'])
-# def delete_todo(uid):
-#     return get_app_db().delete_item(uid)
-
-# @app.route('/todos/{uid}', methods=['PUT'])
-# def update_todo(uid):
-#     body = app.current_request.json_body
-#     get_app_db().update_item(uid, description=body.get("description"), state=body.get("state"), metadata=body.get("metadata"))
-
-
-
-
-
-
+    def update_item(self, uid, description=None, state=None,
+                    metadata=None, username=DEFAULT_USERNAME):
+        # We could also use update_item() with an UpdateExpression.
+        item = self.get_item(uid, username)
+        if description is not None:
+            item['description'] = description
+        if state is not None:
+            item['state'] = state
+        if metadata is not None:
+            item['metadata'] = metadata
+        self._table.put_item(Item=item)
