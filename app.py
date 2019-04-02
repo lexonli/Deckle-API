@@ -1,5 +1,5 @@
 from chalice import Chalice
-from chalicelib import db
+from chalicelib import db, sort
 import os
 import boto3
 
