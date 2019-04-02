@@ -4,6 +4,8 @@ from boto3.dynamodb.conditions import Key
 
 
 DEFAULT_USERNAME = 'default'
+DEFAULT_DURATION = 25 #MINUTES
+DEFAULT_DEADLINE = '01-01-2200 10:00'
 
 
 class TodoDB(object):
@@ -39,7 +41,8 @@ class InMemoryTodoDB(TodoDB):
     def list_items(self, username=DEFAULT_USERNAME):
         return self._state.get(username, {}).values()
 
-    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
+    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME, 
+                duration=DEFAULT_DURATION, deadline=DEFAULT_DEADLINE):
         if username not in self._state:
             self._state[username] = {}
         uid = str(uuid4())
@@ -47,6 +50,8 @@ class InMemoryTodoDB(TodoDB):
             'uid': uid,
             'description': description,
             'state': 'unstarted',
+            'duration': duration,
+            'deadline': deadline,
             'metadata': metadata if metadata is not None else {},
             'username': username
         }
@@ -59,7 +64,8 @@ class InMemoryTodoDB(TodoDB):
         del self._state[username][uid]
 
     def update_item(self, uid, description=None, state=None,
-                    metadata=None, username=DEFAULT_USERNAME):
+                    metadata=None, username=DEFAULT_USERNAME, 
+                    duration=None, deadline=None):
         item = self._state[username][uid]
         if description is not None:
             item['description'] = description
@@ -67,6 +73,10 @@ class InMemoryTodoDB(TodoDB):
             item['state'] = state
         if metadata is not None:
             item['metadata'] = metadata
+        if duration is not None:
+            item['duration'] = duration
+        if deadline is not None:
+            item['deadline'] = deadline
 
 
 class DynamoDBTodo(TodoDB):
@@ -83,13 +93,16 @@ class DynamoDBTodo(TodoDB):
         )
         return response['Items']
 
-    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME):
+    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME, 
+                duration=DEFAULT_DURATION, deadline=DEFAULT_DEADLINE):
         uid = str(uuid4())
         self._table.put_item(
             Item={
                 'username': username,
                 'uid': uid,
                 'description': description,
+                'duration': duration,
+                'deadline': deadline,
                 'state': 'unstarted',
                 'metadata': metadata if metadata is not None else {},
             }
@@ -114,7 +127,8 @@ class DynamoDBTodo(TodoDB):
         )
 
     def update_item(self, uid, description=None, state=None,
-                    metadata=None, username=DEFAULT_USERNAME):
+                    metadata=None, username=DEFAULT_USERNAME, 
+                    duration=None, deadline=None):
         # We could also use update_item() with an UpdateExpression.
         item = self.get_item(uid, username)
         if description is not None:
@@ -123,4 +137,8 @@ class DynamoDBTodo(TodoDB):
             item['state'] = state
         if metadata is not None:
             item['metadata'] = metadata
+        if duration is not None:
+            item['duration'] = duration
+        if deadline is not None:
+            item['deadline'] = deadline
         self._table.put_item(Item=item)
