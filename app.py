@@ -28,6 +28,8 @@ def add_new_todo():
     return get_app_db().add_item(
         description=body['description'],
         metadata=body.get('metadata'),
+        duration = body['duration'],
+        deadline = body['deadline']
     )
 
 
@@ -48,7 +50,9 @@ def update_todo(uid):
         uid,
         description=body.get('description'),
         state=body.get('state'),
-        metadata=body.get('metadata'))
+        metadata=body.get('metadata'),
+        duration = body.get('duration'),
+        deadline = body.get('deadline'))
 
 
 
