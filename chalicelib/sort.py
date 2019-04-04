@@ -1,30 +1,30 @@
-"""
-receive list of dictionaries, where each dictionary contains task information
-"""
-from datetime import datetime
+import datetime
 
-START = datetime.strptime("01-01-2019 00:00", "%d-%m-%Y %H:%M")
+FORMAT = '%Y-%m-%d %H:%M'
+START = datetime.datetime.strptime("2019-01-01 00:00", FORMAT)
 
 def sortTasks(listOfTasks):
 	tasks = []
 	for task in listOfTasks:
-		deadline = datetime.strptime(task["deadline"], "%d-%m-%Y %H:%M")
+		deadline = datetime.datetime.strptime(task["deadline"], FORMAT)
 		diffInSeconds = (deadline - START).total_seconds()
 		score = diffInSeconds
 		tasks.append((score, task))
 	sortedTasks = sorted(tasks)
-	return sortedTasks
+	return [item[1] for item in sortedTasks]
 
-def getTaskUid(sortedTasks, realDuration):
-	for scoredTask in sortedTasks:
-		if realDuration > scoredTask[1]["duration"]:
-			return scoredTask[1]["uid"]
-	return None
+def getNextTask(sortedTasks, realDuration):
+    for task in sortedTasks:
+        durationDelta = datetime.timedelta(minutes=int(task["duration"]))
+        if realDuration > durationDelta:
+            sortedTasks.remove(task)
+            return (task, durationDelta)
+    return None
 
 
 if __name__ == '__main__':
 	test = [{
-        "deadline": "06-04-2019 10:05",
+        "deadline": "2019-04-06 10:05",
         "description": "find the milk",
         "duration": 30.0,
         "metadata": {},
@@ -33,7 +33,7 @@ if __name__ == '__main__':
         "username": "default"
     }, 
     {
-        "deadline": "08-04-2019 10:05",
+        "deadline": "2019-04-08 12:05",
         "description": "find the chocolate",
         "duration": 40.0,
         "metadata": {},
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         "username": "default"
     },
     {
-        "deadline": "01-04-2019 10:05",
+        "deadline": "2019-04-12 14:05",
         "description": "find the teddy bear",
         "duration": 60.0,
         "metadata": {},

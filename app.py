@@ -1,5 +1,5 @@
 from chalice import Chalice
-from chalicelib import db, sort
+from chalicelib import db, sort, events, deckleManager
 import os
 import boto3
 
@@ -15,6 +15,18 @@ def get_app_db():
                 os.environ['APP_TABLE_NAME'])
             )
     return _DB
+
+# TODO:
+# This currently does not work, outh authentication is prompted when running it in lambda
+@app.route('/todos/decklelist', methods=['GET'])
+def update_calendar():
+    eventsList = events.getEvents()
+    timespaces = deckleManager.getTimespaces(eventsList)
+    tasks = get_app_db().list_items()
+    print(task)
+    eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
+    deckleList = deckleManager.deckUpdate(eventTimeSpaces)
+    return deckleList
 
 
 @app.route('/todos', methods=['GET'])
@@ -53,9 +65,6 @@ def update_todo(uid):
         metadata=body.get('metadata'),
         duration = body.get('duration'),
         deadline = body.get('deadline'))
-
-
-
 
 
 
