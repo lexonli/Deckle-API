@@ -23,9 +23,8 @@ def update_calendar():
     eventsList = events.getEvents()
     timespaces = deckleManager.getTimespaces(eventsList)
     tasks = get_app_db().list_items()
-    print(task)
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
-    deckleList = deckleManager.deckUpdate(eventTimeSpaces)
+    deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
     return deckleList
 
 
@@ -65,7 +64,5 @@ def update_todo(uid):
         metadata=body.get('metadata'),
         duration = body.get('duration'),
         deadline = body.get('deadline'))
-
-
 
 

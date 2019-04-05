@@ -1,11 +1,14 @@
-from .events import getEvents, createEvent, credentials
+from .events import getEvents, credentials
 from .sort import getNextTask, sortTasks
+# from events import getEvents, createEvent, credentials
+# from sort import getNextTask, sortTasks
 from datetime import datetime
 import time
+import pytz
 
 FORMAT = '%Y-%m-%d %H:%M'
-START_OF_DAY = datetime.now()
-END_OF_DAY = datetime.now().replace(hour=23, minute=59)
+START_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(tzinfo=None)
+END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23, minute=59, tzinfo=None)
 
 # Timespace object: would most likely receive input of item[1], item[2] of 
 # item = (str, str, str): (eventName, startdatetime, enddatetime)
