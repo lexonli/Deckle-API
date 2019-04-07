@@ -39,7 +39,7 @@
         Here: https://github.com/googleapis/google-api-python-client/blob/master/googleapiclient/discovery.py
         
         
- ##### Documentation on using datetime and handling timezone issues (running in US-east AWS is a pain in the ass)
+ ##### Documentation on using datetime and handling timezone issues (running in US-east Virginia AWS is a pain in the ass)
  
  * Google calendar API is quite considerate, since it receives the datetime isoformat with timezone information
  
