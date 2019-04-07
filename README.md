@@ -1,8 +1,8 @@
-# todo
+# Deckle API 
 
 Documentation on incorporating Google authentication process (OAuth 2.0)
 
-<pre>
+
 * Using an API key to access personal calendars is not possible, access tokens must be used along with the OAuth 2.0 process
         reference: https://stackoverflow.com/questions/42015397/still-possible-to-use-google-calendar-api-with-api-key
 * A brief description on OAuth 2.0
@@ -38,4 +38,3 @@ Documentation on incorporating Google authentication process (OAuth 2.0)
 * The credentials object can then be put into the `build` function to create a client for the google calendar api calls
         Here: https://github.com/googleapis/google-api-python-client/blob/master/googleapiclient/discovery.py
         
-</pre>
