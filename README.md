@@ -1,6 +1,6 @@
 # Deckle API 
 
-Documentation on incorporating Google authentication process (OAuth 2.0)
+##### Documentation on incorporating Google authentication process (OAuth 2.0)
 
 
 * Using an API key to access personal calendars is not possible, access tokens must be used along with the OAuth 2.0 process
@@ -37,4 +37,14 @@ Documentation on incorporating Google authentication process (OAuth 2.0)
         
 * The credentials object can then be put into the `build` function to create a client for the google calendar api calls
         Here: https://github.com/googleapis/google-api-python-client/blob/master/googleapiclient/discovery.py
+        
+        
+ ##### Documentation on using datetime and handling timezone issues (running in US-east AWS is a pain in the ass)
+ 
+ * Google calendar API is quite considerate, since it receives the datetime isoformat with timezone information
+ 
+ * I had to spend a bit of time to look up how timezone-aware and timezone-naive datetimes work
+        https://stackoverflow.com/questions/4530069/python-how-to-get-a-value-of-datetime-today-that-is-timezone-aware
+ * Now, it's working great, since the API reads the time by looking at the timezone specified
+        https://stackoverflow.com/questions/2331592/why-does-datetime-datetime-utcnow-not-contain-timezone-information
         
