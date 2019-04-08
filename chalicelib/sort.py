@@ -6,6 +6,8 @@ START = datetime.datetime.strptime("2019-01-01 00:00", FORMAT)
 def sortTasks(listOfTasks):
 	tasks = []
 	for task in listOfTasks:
+		if task["state"] == "finished":
+			continue
 		deadline = datetime.datetime.strptime(task["deadline"], FORMAT)
 		diffInSeconds = (deadline - START).total_seconds()
 		score = diffInSeconds

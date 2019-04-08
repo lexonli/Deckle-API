@@ -17,7 +17,6 @@ from oauth2client.client import AccessTokenCredentials
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 FORMAT = '%Y-%m-%d %H:%M'
 # The latest time we want for events

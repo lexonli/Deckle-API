@@ -2,9 +2,13 @@ from .events import getEvents, credentials
 from .sort import getNextTask, sortTasks
 # from events import getEvents, createEvent, credentials
 # from sort import getNextTask, sortTasks
+import logging
 from datetime import datetime
 import time
 import pytz
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 FORMAT = '%Y-%m-%d %H:%M'
 START_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(tzinfo=None)
@@ -32,6 +36,8 @@ def getTimespaces(events):
 	rtype: List of timespaces
 	"""
 	# initial timespace
+	startdaytemp = "START_OF_DAY: ", datetime.strftime(START_OF_DAY, FORMAT)
+	logger.info(startdaytemp)
 	timespace = Timespace()
 	timespaces = []
 	if events:

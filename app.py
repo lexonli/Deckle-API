@@ -124,3 +124,5 @@ def update_todo(uid):
         deadline = body.get('deadline'))
 
 
+if __name__ == '__main__':
+    print(update_calendar())
