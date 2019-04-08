@@ -30,6 +30,15 @@ def dummy():
     s3.list_buckets()
     s3.put_object()
     s3.delete_object()
+    db = boto3.resource('dynamodb')
+    db.list_items()
+    db.Table()
+    db.scan()
+    db.query()
+    db.put_item()
+    db.get_item()
+    db.delete_item()
+    
 
 def get_app_db():
     global _DB
@@ -55,7 +64,7 @@ def index():
 
 @app.route('/todos/decklelist', methods=['GET'])
 def update_calendar():
-    eventsList = events.getEvents()
+    eventsList = events.getEvents(BUCKET, TOKENFILE)
     timespaces = deckleManager.getTimespaces(eventsList)
     tasks = get_app_db().list_items()
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks)

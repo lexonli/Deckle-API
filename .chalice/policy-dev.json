@@ -24,6 +24,14 @@
         "arn:aws:dynamodb:*:*:table/users-app-*"
       ],
       "Effect": "Allow"
+    },
+    {
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject"
+      ],
+      "Resource": "arn:aws:s3:::deckle-data/*",
+      "Effect": "Allow"
     }
   ]
 }

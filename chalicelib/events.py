@@ -27,8 +27,8 @@ logger.info(END_OF_DAY)
 # this user agent is chosen arbitrarily, might change if a better option is available
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Silk/44.1.54 like Chrome/44.0.2403.63 Safari/537.36"
 
-def credentials():
-    token = auth.accessToken()
+def credentials(bucket, tokenFile):
+    token = auth.accessToken(bucket, tokenFile)
     creds = AccessTokenCredentials(token, USER_AGENT)
     return creds
 
@@ -58,15 +58,14 @@ def credentials():
 #         return creds
 
 
-def getEvents():
+def getEvents(bucket, tokenFile):
     """
     :rtype: List of 3-tuple: (str, str, str): (eventName, startdatetime, enddatetime)
 
     if credentials are valid, obtain the events from current time to 
     just before midnight of that day and return events as a list of events
     """
-    logger.info(MAX_TIME)
-    creds = credentials()
+    creds = credentials(bucket, tokenFile)
     if credentials == None:
         raise Exception("credentials not available")
 
