@@ -48,3 +48,14 @@
  * Now, it's working great, since the API reads the time by looking at the timezone specified
         https://stackoverflow.com/questions/2331592/why-does-datetime-datetime-utcnow-not-contain-timezone-information
         
+ ##### Amazon IAM policies
+ * received this error when trying to run decklelist
+ ```
+ botocore.exceptions.ClientError: An error occurred (AccessDenied) when calling the GetObject operation: Access Denied
+ ```
+ Find ARN naming in https://docs.aws.amazon.com/general/latest/gr/aws-arns-and-namespaces.html#genref-arns
+ The problem was I specified the bucket itself in the policy only, not the object itself
+ Solution: 
+ ```
+ add "/*" to the end of the bucket name in the policy
+ ```
