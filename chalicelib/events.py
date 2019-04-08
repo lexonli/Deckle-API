@@ -20,17 +20,12 @@ logger.setLevel(logging.INFO)
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 FORMAT = '%Y-%m-%d %H:%M'
-UTC_DIFF = '+11:00'
 # The latest time we want for events
-MAX_TIME = datetime.now(pytz.timezone("Australia/Melbourne")).strftime("%Y-%m-%d") + "T23:59:59.999999" + UTC_DIFF
-logger.info(MAX_TIME)
+END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23, minute=59).isoformat()
+logger.info(END_OF_DAY)
 
 # this user agent is chosen arbitrarily, might change if a better option is available
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Silk/44.1.54 like Chrome/44.0.2403.63 Safari/537.36"
-
-# this helper is only for datetime objects without timezone (pytz)
-# def datetimeToIso(datetimeObject, utcDifference):
-#     return datetimeObject.isoformat() + utcDifference
 
 def credentials():
     token = auth.accessToken()
@@ -78,9 +73,9 @@ def getEvents():
     service = build('calendar', 'v3', credentials=creds)
 
     # Call the Calendar API
-    current = datetime.now(pytz.timezone("Australia/Melbourne")).isoformat() # +'Z' indicates UTC time
+    current = datetime.now(pytz.timezone("Australia/Melbourne")).isoformat()
     logger.info(current)
-    events_result = service.events().list(calendarId='primary', timeMin=current, timeMax=MAX_TIME,
+    events_result = service.events().list(calendarId='primary', timeMin=current, timeMax=END_OF_DAY,
                                         maxResults=10, singleEvents=True,
                                         orderBy='startTime').execute()
     events = events_result.get('items', [])

@@ -1,10 +1,10 @@
 {
   "resources": [
     {
-      "name": "api_handler_role",
+      "name": "default-role",
       "resource_type": "iam_role",
-      "role_arn": "arn:aws:iam::946159186642:role/mytodo-dev-api_handler",
-      "role_name": "mytodo-dev-api_handler"
+      "role_arn": "arn:aws:iam::946159186642:role/mytodo-dev",
+      "role_name": "mytodo-dev"
     },
     {
       "name": "api_handler",

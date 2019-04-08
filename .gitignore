@@ -114,8 +114,4 @@ dmypy.json
 .pyre/
 chalicelib/.DS_Store
 .DS_Store
-credentials.json
-.DS_Store
-chalicelib/token.pickle
-chalicelib/token.txt
-chalicelib/auth.py
+chalicelib/authentication.json
