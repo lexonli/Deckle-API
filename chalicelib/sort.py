@@ -12,7 +12,7 @@ def sortTasks(listOfTasks):
 		diffInSeconds = (deadline - START).total_seconds()
 		score = diffInSeconds
 		tasks.append((score, task))
-	sortedTasks = sorted(tasks)
+	sortedTasks = sorted(tasks, key=lambda x: x[0])
 	return [item[1] for item in sortedTasks]
 
 def getNextTask(sortedTasks, realDuration):
