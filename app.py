@@ -62,10 +62,10 @@ def index():
     return {'service': app.app_name, 'version': _VERSION}
 
 
-@app.route('/todos/decklelist', methods=['GET'])
-def update_calendar():
+@app.route('/todos/decklelist/{currentDateTime}', methods=['GET'])
+def update_calendar(currentDateTime):
     eventsList = events.getEvents(BUCKET, TOKENFILE)
-    timespaces = deckleManager.getTimespaces(eventsList)
+    timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
     tasks = get_app_db().list_items()
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)

@@ -11,6 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 FORMAT = '%Y-%m-%d %H:%M'
+URL_FORMAT = '%Y-%m-%d+%H:%M'
 START_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(tzinfo=None)
 END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23, minute=59, tzinfo=None)
 
@@ -18,7 +19,7 @@ END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23,
 # item = (str, str, str): (eventName, startdatetime, enddatetime)
 class Timespace:
 	# init start time and end time with datetime
-	def __init__(self, start=START_OF_DAY, end=END_OF_DAY, task=None):
+	def __init__(self, start, end, task=None):
 		self.start = start
 		self.end = end
 		self.task = task
@@ -30,15 +31,15 @@ class Timespace:
 		return (Timespace(start=self.start, end=startCut), 
 				Timespace(start=endCut, end=self.end))
 
-def getTimespaces(events):
+def getTimespaces(events, currentDateTime):
 	"""
 	param: List of 3-tuple: (name, startTimeString, endTimeString)
 	rtype: List of timespaces
 	"""
 	# initial timespace
-	startdaytemp = "START_OF_DAY: ", datetime.strftime(START_OF_DAY, FORMAT)
-	logger.info(startdaytemp)
-	timespace = Timespace()
+	startDateTime = datetime.strptime(currentDateTime, URL_FORMAT)
+	logger.info(startDateTime)
+	timespace = Timespace(start=startDateTime, end=startDateTime.replace(hour=23, minute=59))
 	timespaces = []
 	if events:
 		# make sure events are sorted
