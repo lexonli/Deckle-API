@@ -79,7 +79,7 @@ def login():
     # The following is throwing `ValueError: Circular reference detected` runtime error
     # return {"token": jwt_token}
     # changed to
-    return jwt_token
+    return jwt_token.decode("utf-8")
 
 
 @app.authorizer()
