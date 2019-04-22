@@ -1,11 +1,12 @@
-from chalice import Chalice
-from chalicelib import db, sort, events, deckleManager, auth
+from chalice import Chalice, AuthResponse
+from chalicelib import db, sort, events, deckleManager, googleAuth, auth
 import os
 import boto3
 
 app = Chalice(app_name='mytodo')
 app.debug = True
 _DB = None
+_USER_DB = None
 _VERSION = "0.1"
 _DUMMY = False
 TOKENFILE = "token.json"
@@ -49,6 +50,13 @@ def get_app_db():
             )
     return _DB
 
+def get_users_db():
+    global _USER_DB
+    if _USER_DB is None:
+        _USER_DB = boto3.resource('dynamodb').Table(
+            os.environ['USERS_TABLE_NAME'])
+    return _USER_DB
+
 
 @app.route('/')
 def index():
@@ -61,8 +69,31 @@ def index():
         dummy()
     return {'service': app.app_name, 'version': _VERSION}
 
+@app.route('/login', methods=['POST'])
+def login():
+    body = app.current_request.json_body
+    record = get_users_db().get_item(
+        Key={'username': body['username']})['Item']
+    jwt_token = auth.get_jwt_token(
+        body['username'], body['password'], record)
+    # The following is throwing `ValueError: Circular reference detected` runtime error
+    # return {"token": jwt_token}
+    # changed to
+    return jwt_token
 
-@app.route('/todos/decklelist/{currentDateTime}', methods=['GET'])
+
+@app.authorizer()
+def jwt_auth(auth_request):
+    token = auth_request.token
+    print(token)
+    decoded = auth.decode_jwt_token(token)
+    return AuthResponse(routes=['*'], principal_id=decoded['sub'])
+        
+
+def get_authorized_username(current_request):
+    return current_request.context['authorizer']['principalId']
+
+@app.route('/todos/decklelist/{currentDateTime}', methods=['GET'], authorizer=jwt_auth)
 def update_calendar(currentDateTime):
     eventsList = events.getEvents(BUCKET, TOKENFILE)
     timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
@@ -71,30 +102,34 @@ def update_calendar(currentDateTime):
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
     return deckleList
 
-@app.route('/todos/auth', methods=['GET'])
+@app.route('/todos/auth', methods=['GET'], authorizer=jwt_auth)
 def authenticate_user():
-    return auth.requestToAuthServer(AUTHFILE)
+    return googleAuth.requestToAuthServer(AUTHFILE)
 
-@app.route('/todos/poll', methods=['POST'])
+@app.route('/todos/poll', methods=['POST'], authorizer=jwt_auth)
 def poll_server():
     body = app.current_request.json_body
-    pollData = auth.pollToAuthServer(BUCKET, AUTHFILE, TOKENFILE, body)
+    pollData = googleAuth.pollToAuthServer(BUCKET, AUTHFILE, TOKENFILE, body)
     return {"message": "polling successful"}
 
-@app.route('/todos/refresh', methods=['GET'])
+@app.route('/todos/refresh', methods=['GET'], authorizer=jwt_auth)
 def refresh():
-    auth.refreshAccessTokenToAuthServer(BUCKET, TOKENFILE, AUTHFILE)
+    googleAuth.refreshAccessTokenToAuthServer(BUCKET, TOKENFILE, AUTHFILE)
     return {"message": "access token refreshed"}
 
-@app.route('/todos', methods=['GET'])
+#assuming authorizer is working using root credentials from local computer
+@app.route('/todos', methods=['GET'], authorizer=jwt_auth)
 def get_todos():
-    return get_app_db().list_items()
+    username = get_authorized_username(app.current_request)
+    return get_app_db().list_items(username=username)
 
 
-@app.route('/todos', methods=['POST'])
+@app.route('/todos', methods=['POST'], authorizer=jwt_auth)
 def add_new_todo():
     body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
     return get_app_db().add_item(
+        username = username,
         description=body['description'],
         metadata=body.get('metadata'),
         duration = body['duration'],
@@ -102,26 +137,30 @@ def add_new_todo():
     )
 
 
-@app.route('/todos/{uid}', methods=['GET'])
+@app.route('/todos/{uid}', methods=['GET'], authorizer=jwt_auth)
 def get_todo(uid):
-    return get_app_db().get_item(uid)
+    username = get_authorized_username(app.current_request)
+    return get_app_db().get_item(uid, username=username)
 
 
-@app.route('/todos/{uid}', methods=['DELETE'])
+@app.route('/todos/{uid}', methods=['DELETE'], authorizer=jwt_auth)
 def delete_todo(uid):
-    return get_app_db().delete_item(uid)
+    username = get_authorized_username(app.current_request)
+    return get_app_db().delete_item(uid, username=username)
 
 
-@app.route('/todos/{uid}', methods=['PUT'])
+@app.route('/todos/{uid}', methods=['PUT'], authorizer=jwt_auth)
 def update_todo(uid):
     body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
     get_app_db().update_item(
         uid,
         description=body.get('description'),
         state=body.get('state'),
         metadata=body.get('metadata'),
         duration = body.get('duration'),
-        deadline = body.get('deadline'))
+        deadline = body.get('deadline'),
+        username=username)
 
 
 if __name__ == '__main__':

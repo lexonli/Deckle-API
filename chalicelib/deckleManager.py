@@ -12,8 +12,8 @@ logger.setLevel(logging.INFO)
 
 FORMAT = '%Y-%m-%d %H:%M'
 URL_FORMAT = '%Y-%m-%d+%H:%M'
-START_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(tzinfo=None)
-END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23, minute=59, tzinfo=None)
+# START_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(tzinfo=None)
+# END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23, minute=59, tzinfo=None)
 
 # Timespace object: would most likely receive input of item[1], item[2] of 
 # item = (str, str, str): (eventName, startdatetime, enddatetime)
