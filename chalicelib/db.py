@@ -87,13 +87,13 @@ class DynamoDBTodo(TodoDB):
         response = self._table.scan()
         return response['Items']
 
-    def list_items(self, username=DEFAULT_USERNAME):
+    def list_items(self, username):
         response = self._table.query(
             KeyConditionExpression=Key('username').eq(username)
         )
         return response['Items']
 
-    def add_item(self, description, metadata=None, username=DEFAULT_USERNAME, 
+    def add_item(self, description, username, metadata=None, 
                 duration=DEFAULT_DURATION, deadline=DEFAULT_DEADLINE):
         uid = str(uuid4())
         self._table.put_item(
@@ -109,7 +109,7 @@ class DynamoDBTodo(TodoDB):
         )
         return uid
 
-    def get_item(self, uid, username=DEFAULT_USERNAME):
+    def get_item(self, uid, username):
         response = self._table.get_item(
             Key={
                 'username': username,
@@ -118,7 +118,7 @@ class DynamoDBTodo(TodoDB):
         )
         return response['Item']
 
-    def delete_item(self, uid, username=DEFAULT_USERNAME):
+    def delete_item(self, uid, username):
         self._table.delete_item(
             Key={
                 'username': username,
@@ -126,9 +126,8 @@ class DynamoDBTodo(TodoDB):
             }
         )
 
-    def update_item(self, uid, description=None, state=None,
-                    metadata=None, username=DEFAULT_USERNAME, 
-                    duration=None, deadline=None):
+    def update_item(self, uid, username, description=None, state=None,
+                    metadata=None, duration=None, deadline=None):
         # We could also use update_item() with an UpdateExpression.
         item = self.get_item(uid, username)
         if description is not None:

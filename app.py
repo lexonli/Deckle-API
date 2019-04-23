@@ -1,4 +1,4 @@
-from chalice import Chalice, AuthResponse
+from chalice import Chalice, AuthResponse, BadRequestError
 from chalicelib import db, sort, events, deckleManager, googleAuth, auth
 import os
 import boto3
@@ -72,14 +72,15 @@ def index():
 @app.route('/login', methods=['POST'])
 def login():
     body = app.current_request.json_body
-    record = get_users_db().get_item(
-        Key={'username': body['username']})['Item']
-    jwt_token = auth.get_jwt_token(
-        body['username'], body['password'], record)
-    # The following is throwing `ValueError: Circular reference detected` runtime error
-    # return {"token": jwt_token}
-    # changed to
-    return jwt_token.decode("utf-8")
+    try:
+        record = get_users_db().get_item(Key={'username': body['username']})['Item']
+        jwt_token = auth.get_jwt_token(body['username'], body['password'], record)
+        # The following is throwing `ValueError: Circular reference detected` runtime error
+        # return {"token": jwt_token}
+        # changed to
+        return jwt_token.decode("utf-8")
+    except KeyError:
+        raise BadRequestError("No such user in the database.")
 
 
 @app.authorizer()
@@ -95,9 +96,10 @@ def get_authorized_username(current_request):
 
 @app.route('/todos/decklelist/{currentDateTime}', methods=['GET'], authorizer=jwt_auth)
 def update_calendar(currentDateTime):
+    username = get_authorized_username(app.current_request)
     eventsList = events.getEvents(BUCKET, TOKENFILE)
     timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
-    tasks = get_app_db().list_items()
+    tasks = get_app_db().list_items(username)
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
     return deckleList

@@ -37,7 +37,7 @@ def encode_password(password, salt=None):
     if salt is None:
         salt = os.urandom(16)
     rounds = 100000
-    hashed = hashlib.pbkdf2_hmac('sha256', b'{password}', salt, rounds)
+    hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, rounds)
     return {
         'hash': 'sha256',
         'salt': salt,
@@ -59,7 +59,10 @@ def test_password(stage):
     table_name = get_table_name(stage)
     table = boto3.resource('dynamodb').Table(table_name)
     item = table.get_item(Key={'username': username})['Item']
+    print(password)
     encoded = encode_password(password, salt=item['salt'].value)
+    print(encoded)
+    print(item['hashed'].value)
     if hmac.compare_digest(encoded['hashed'], item['hashed'].value):
         print("Password verified.")
     else:

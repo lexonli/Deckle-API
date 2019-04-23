@@ -6,6 +6,8 @@ from uuid import uuid4
 import jwt
 from chalice import UnauthorizedError
 
+import logging
+
 
 # TODO: Figure out what we want to do with this.
 # We can either move this out to env vars in config.json,
@@ -13,15 +15,19 @@ from chalice import UnauthorizedError
 # Until we figure it out I'll store it here.
 _SECRET = b'\xf7\xb6k\xabP\xce\xc1\xaf\xad\x86\xcf\x84\x02\x80\xa0\xe0'
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def get_jwt_token(username, password, record):
     actual = hashlib.pbkdf2_hmac(
         record['hash'],
-        b'{password}',
+        password.encode(),
         record['salt'].value,
         record['rounds']
     )
+    logger.info(actual)
     expected = record['hashed'].value
+    logger.info(expected)
     if hmac.compare_digest(actual, expected):
         now = datetime.datetime.utcnow()
         unique_id = str(uuid4())

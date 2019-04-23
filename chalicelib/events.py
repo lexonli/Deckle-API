@@ -5,8 +5,8 @@ import os.path
 import logging
 import pytz
 
-#import auth
-from . import auth
+#import googleAuth
+from . import googleAuth
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -27,7 +27,7 @@ logger.info(END_OF_DAY)
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Silk/44.1.54 like Chrome/44.0.2403.63 Safari/537.36"
 
 def credentials(bucket, tokenFile):
-    token = auth.accessToken(bucket, tokenFile)
+    token = googleAuth.accessToken(bucket, tokenFile)
     creds = AccessTokenCredentials(token, USER_AGENT)
     return creds
 
