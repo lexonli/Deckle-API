@@ -4,6 +4,7 @@ import pickle
 import os.path
 import logging
 import pytz
+import json
 
 #import googleAuth
 from . import googleAuth
@@ -56,6 +57,11 @@ def credentials(bucket, tokenFile):
 #     else:
 #         return creds
 
+def getEventsFromJSON(eventsJSON):
+    events = []
+    for event in eventsJSON["events"]:
+        events.append((event['name'], event['start'], event['end']))
+    return events
 
 def getEvents(bucket, tokenFile):
     """

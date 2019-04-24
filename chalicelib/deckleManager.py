@@ -11,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 FORMAT = '%Y-%m-%d %H:%M'
-URL_FORMAT = '%Y-%m-%d+%H:%M'
+URL_FORMAT = '%Y-%m-%d-%H-%M'
 # START_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(tzinfo=None)
 # END_OF_DAY = datetime.now(pytz.timezone("Australia/Melbourne")).replace(hour=23, minute=59, tzinfo=None)
 

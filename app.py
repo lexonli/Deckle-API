@@ -2,6 +2,7 @@ from chalice import Chalice, AuthResponse, BadRequestError
 from chalicelib import db, sort, events, deckleManager, googleAuth, auth
 import os
 import boto3
+import logging
 
 app = Chalice(app_name='mytodo')
 app.debug = True
@@ -12,6 +13,9 @@ _DUMMY = False
 TOKENFILE = "token.json"
 AUTHFILE = "authentication.json"
 BUCKET = "deckle-data"
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 def dummy():
     """
@@ -99,11 +103,25 @@ def update_calendar(currentDateTime):
     username = get_authorized_username(app.current_request)
     eventsList = events.getEvents(BUCKET, TOKENFILE)
     timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
-    tasks = get_app_db().list_items(username)
+    tasks = get_app_db().list_items(username=username)
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
     return deckleList
 
+@app.route('/todos/decklelist/{currentDateTime}', methods=['POST'], authorizer=jwt_auth)
+def update_calendar_with_events(currentDateTime):
+    body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
+
+    eventsList = events.getEventsFromJSON(body)
+    timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
+
+    tasks = get_app_db().list_items(username=username)
+    eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
+    deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
+    return deckleList
+
+# google authentication resources
 @app.route('/todos/auth', methods=['GET'], authorizer=jwt_auth)
 def authenticate_user():
     return googleAuth.requestToAuthServer(AUTHFILE)
@@ -119,6 +137,7 @@ def refresh():
     googleAuth.refreshAccessTokenToAuthServer(BUCKET, TOKENFILE, AUTHFILE)
     return {"message": "access token refreshed"}
 
+# Basic Deckle task operation resources
 #assuming authorizer is working using root credentials from local computer
 @app.route('/todos', methods=['GET'], authorizer=jwt_auth)
 def get_todos():

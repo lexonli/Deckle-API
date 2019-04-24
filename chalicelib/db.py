@@ -110,13 +110,17 @@ class DynamoDBTodo(TodoDB):
         return uid
 
     def get_item(self, uid, username):
-        response = self._table.get_item(
-            Key={
-                'username': username,
-                'uid': uid,
-            },
-        )
-        return response['Item']
+        try:
+            response = self._table.get_item(
+                Key={
+                    'username': username,
+                    'uid': uid,
+                },
+            )
+        except:
+            response = None
+        # return response['Item']
+        return response
 
     def delete_item(self, uid, username):
         self._table.delete_item(
