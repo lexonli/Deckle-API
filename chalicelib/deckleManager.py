@@ -1,6 +1,6 @@
 from .events import getEvents, credentials
 from .sort import getNextTask, sortTasks
-# from events import getEvents, createEvent, credentials
+# from events import getEvents, credentials
 # from sort import getNextTask, sortTasks
 import logging
 from datetime import datetime
@@ -20,7 +20,25 @@ class Timespace:
 	def __init__(self, start, end, task=None):
 		self.start = start
 		self.end = end
+		# name of the task
 		self.task = task
+
+	@classmethod
+	def fromEvent(cls, event, username):
+		task = {}
+		start = datetime.strptime(event[1], FORMAT)
+		end = datetime.strptime(event[2], FORMAT)
+		task["deadline"] = event[2]
+		task["metadata"] = {}
+		task["username"] = username
+		task["description"] = event[0]
+		durationDelta = end - start
+		task["duration"] = durationDelta.seconds // 60
+		# maybe we should generate a uuid for events as well?
+		task["uid"] = event[0] + event[1] + event[2]
+		task["state"] = "event"
+
+		return cls(start=start, end=end, task=task)
 
 	def duration(self):
 		return self.end - self.start # time delta
@@ -53,7 +71,8 @@ def getTimespaces(events, currentDateTime):
 	timespaces.append(timespace)
 	return timespaces
 
-def allocate(timespaces, listOfTasks):
+
+def allocate(timespaces, listOfTasks, events, username):
 	sortedTasks = sortTasks(listOfTasks)
 	eventTimeSpaces = []
 	isLast = False
@@ -61,10 +80,13 @@ def allocate(timespaces, listOfTasks):
 		hasAvailableTask = True
 		while hasAvailableTask:
 			info = getNextTask(sortedTasks, timespace.duration())
-
-			# no possible task
+			# no possible task that fits the timespace
 			if info == None:
 				hasAvailableTask = False
+				# append an event into the list
+				if events:
+					print("appending")
+					eventTimeSpaces.append(Timespace.fromEvent(events.pop(0), username))
 			else:
 				matchedTask = info[0]
 				taskDuration = info[1] #time delta object
@@ -72,6 +94,9 @@ def allocate(timespaces, listOfTasks):
 				eventTimeSpaces.append(Timespace(start=timespace.start, 
 													end=endTaskDatetime, task=matchedTask))
 				timespace.start = endTaskDatetime
+	while events:
+		print("appending again")
+		eventTimeSpaces.append(Timespace.fromEvent(events.pop(0)))
 	return eventTimeSpaces
 
 def timespaceToJsonDict(timespace):
@@ -94,36 +119,8 @@ def createTaskEvents(eventTimeSpaces, creds):
 
 
 if __name__ == '__main__':
-	test = [{
-        "deadline": "2019-04-06 10:05",
-        "description": "find the milk",
-        "duration": 30.0,
-        "metadata": {},
-        "state": "unstarted",
-        "uid": "a0779206-90e8-4d4a-8be2-fb948859143d",
-        "username": "default"
-    }, 
-    {
-        "deadline": "2019-04-08 12:05",
-        "description": "find the chocolate",
-        "duration": 40.0,
-        "metadata": {},
-        "state": "unstarted",
-        "uid": "d3243346-90e8-4d4a-8be2-fb948853433d",
-        "username": "default"
-    },
-    {
-        "deadline": "2019-04-12 14:05",
-        "description": "find the teddy bear",
-        "duration": 60.0,
-        "metadata": {},
-        "state": "unstarted",
-        "uid": "bgd3346-90e8-4d4a-8be2-fb948853433d",
-        "username": "default"
-    }]
 	events = getEvents()
 	timespaces = getTimespaces(events)
 	eventTimeSpaces = allocate(timespaces, test)
 	print(deckleUpdate(eventTimeSpaces))
-	# createTaskEvents(eventTimeSpaces, credentials())
 

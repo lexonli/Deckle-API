@@ -117,7 +117,7 @@ def update_calendar_with_events(currentDateTime):
     timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
 
     tasks = get_app_db().list_items(username=username)
-    eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
+    eventTimeSpaces = deckleManager.allocate(timespaces, tasks, eventsList, username)
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
     return deckleList
 
