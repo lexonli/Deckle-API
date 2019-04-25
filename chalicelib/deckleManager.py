@@ -84,6 +84,7 @@ def timespaceToJsonDict(timespace):
 
 
 def deckleUpdate(eventTimeSpaces):
+	print(eventTimeSpaces)
 	deckleList = []
 	for eventTimeSpace in eventTimeSpaces:
 		deckleList.append(timespaceToJsonDict(eventTimeSpace))

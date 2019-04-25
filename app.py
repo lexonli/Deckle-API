@@ -173,7 +173,10 @@ def delete_todo(uid):
 @app.route('/todos/{uid}', methods=['PUT'], authorizer=jwt_auth)
 def update_todo(uid):
     body = app.current_request.json_body
+    logger.info(body)
     username = get_authorized_username(app.current_request)
+    logger.info(app.current_request)
+    logger.info(username)
     get_app_db().update_item(
         uid,
         description=body.get('description'),

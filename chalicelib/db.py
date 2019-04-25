@@ -135,13 +135,13 @@ class DynamoDBTodo(TodoDB):
         # We could also use update_item() with an UpdateExpression.
         item = self.get_item(uid, username)
         if description is not None:
-            item['description'] = description
+            item["Item"]['description'] = description
         if state is not None:
-            item['state'] = state
+            item["Item"]['state'] = state
         if metadata is not None:
-            item['metadata'] = metadata
+            item["Item"]['metadata'] = metadata
         if duration is not None:
-            item['duration'] = duration
+            item["Item"]['duration'] = duration
         if deadline is not None:
-            item['deadline'] = deadline
-        self._table.put_item(Item=item)
+            item["Item"]['deadline'] = deadline
+        self._table.put_item(Item=item["Item"])

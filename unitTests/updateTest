@@ -1,0 +1,3 @@
+#! /bin/bash
+
+echo '{"description":"teeet123456789", "state":"unstarted","deadline":"2019-04-11 10:00", "duration":23}' | http POST localhost:8000/todos  Authorization:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZWZhdWx0IiwiaWF0IjoxNTU2MTIwMTE2LCJuYmYiOjE1NTYxMjAxMTYsImp0aSI6ImM1ZTQ1MmNlLTg1MDItNDU0Yi05OTZkLTk2NGQ5NmZmOTYzNSJ9.ShIZnYt2zlmdaqNEOrxbhIUTOY9GsF1TGeQoPkNrlRc
