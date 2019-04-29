@@ -4,14 +4,24 @@ import os
 import boto3
 import logging
 
+### tasks response schema reference
+# [{'deadline': '2019-4-29 10:0', 'metadata': {}, 'username': 'default', 'description': 'COMP 3 Week 5 SVMs and decision boundaries Practical', 'duration': Decimal('60'), 'uid': '0a04e54d-b77d-4fcb-8dd5-57b607c74c2e', 'state': 'unstarted'}]
+# i.e. array of json objects with columns: 
+# "deadline", "metadata", "username", "description", "duration", "uid", "state"
+
+### /decklelist response schema reference
+# array of json objects with columns: 
+# "deadline", "metadata", "username", "description", "duration", "uid", "state", "start", "end"
+
 app = Chalice(app_name='mytodo')
 app.debug = True
 _DB = None
 _USER_DB = None
 _VERSION = "0.1"
 _DUMMY = False
-TOKENFILE = "token.json"
-AUTHFILE = "authentication.json"
+# old google auth keys
+# TOKENFILE = "token.json"
+# AUTHFILE = "authentication.json"
 BUCKET = "deckle-data"
 
 logger = logging.getLogger()
@@ -90,7 +100,6 @@ def login():
 @app.authorizer()
 def jwt_auth(auth_request):
     token = auth_request.token
-    print(token)
     decoded = auth.decode_jwt_token(token)
     return AuthResponse(routes=['*'], principal_id=decoded['sub'])
         
@@ -98,44 +107,19 @@ def jwt_auth(auth_request):
 def get_authorized_username(current_request):
     return current_request.context['authorizer']['principalId']
 
-@app.route('/todos/decklelist/{currentDateTime}', methods=['GET'], authorizer=jwt_auth)
-def update_calendar(currentDateTime):
-    username = get_authorized_username(app.current_request)
-    eventsList = events.getEvents(BUCKET, TOKENFILE)
-    timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
-    tasks = get_app_db().list_items(username=username)
-    eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
-    deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
-    return deckleList
-
-@app.route('/todos/decklelist/{currentDateTime}', methods=['POST'], authorizer=jwt_auth)
-def update_calendar_with_events(currentDateTime):
+@app.route('/todos/decklelist/{startDateTime}', methods=['POST'], authorizer=jwt_auth)
+def get_decklelist(startDateTime):
     body = app.current_request.json_body
     username = get_authorized_username(app.current_request)
 
-    eventsList = events.getEventsFromJSON(body)
-    timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
-
     tasks = get_app_db().list_items(username=username)
+
+    eventsList = events.getEventsFromJSON(body)
+    timespaces = deckleManager.getTimespaces(eventsList, startDateTime)
+
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks, eventsList, username)
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
     return deckleList
-
-# google authentication resources
-@app.route('/todos/auth', methods=['GET'], authorizer=jwt_auth)
-def authenticate_user():
-    return googleAuth.requestToAuthServer(AUTHFILE)
-
-@app.route('/todos/poll', methods=['POST'], authorizer=jwt_auth)
-def poll_server():
-    body = app.current_request.json_body
-    pollData = googleAuth.pollToAuthServer(BUCKET, AUTHFILE, TOKENFILE, body)
-    return {"message": "polling successful"}
-
-@app.route('/todos/refresh', methods=['GET'], authorizer=jwt_auth)
-def refresh():
-    googleAuth.refreshAccessTokenToAuthServer(BUCKET, TOKENFILE, AUTHFILE)
-    return {"message": "access token refreshed"}
 
 # Basic Deckle task operation resources
 #assuming authorizer is working using root credentials from local computer
@@ -154,7 +138,8 @@ def add_new_todo():
         description=body['description'],
         metadata=body.get('metadata'),
         duration = body['duration'],
-        deadline = body['deadline']
+        deadline = body['deadline'],
+        startline = body['startline']
     )
 
 
@@ -173,10 +158,7 @@ def delete_todo(uid):
 @app.route('/todos/{uid}', methods=['PUT'], authorizer=jwt_auth)
 def update_todo(uid):
     body = app.current_request.json_body
-    logger.info(body)
     username = get_authorized_username(app.current_request)
-    logger.info(app.current_request)
-    logger.info(username)
     get_app_db().update_item(
         uid,
         description=body.get('description'),
@@ -184,7 +166,53 @@ def update_todo(uid):
         metadata=body.get('metadata'),
         duration = body.get('duration'),
         deadline = body.get('deadline'),
+        startline = body.get('startline'),
         username=username)
+    return {"message": "Success: updated"}
+
+@app.route('/todos/all', methods=['PUT'], authorizer=jwt_auth)
+def update_all_todos():
+    body = app.current_request.json_body
+    username = get_authorized_username(app.current_request)
+    get_app_db().update_all_items(
+        description=body.get('description'),
+        state=body.get('state'),
+        metadata=body.get('metadata'),
+        duration = body.get('duration'),
+        deadline = body.get('deadline'),
+        startline = body.get('startline'),
+        username=username)
+    return {"message": "Success: updated all"}
+
+
+# get method for /decklelist using google auth (deprecated)
+
+# @app.route('/todos/decklelist/{startDateTime}', methods=['GET'], authorizer=jwt_auth)
+# def update_calendar(currentDateTime):
+#     username = get_authorized_username(app.current_request)
+#     eventsList = events.getEvents(BUCKET, TOKENFILE)
+#     timespaces = deckleManager.getTimespaces(eventsList, currentDateTime)
+#     tasks = get_app_db().list_items(username=username)
+#     eventTimeSpaces = deckleManager.allocate(timespaces, tasks)
+#     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
+#     return deckleList
+
+# google authentication resources (deprecated)
+
+# @app.route('/todos/auth', methods=['GET'], authorizer=jwt_auth)
+# def authenticate_user():
+#     return googleAuth.requestToAuthServer(AUTHFILE)
+
+# @app.route('/todos/poll', methods=['POST'], authorizer=jwt_auth)
+# def poll_server():
+#     body = app.current_request.json_body
+#     pollData = googleAuth.pollToAuthServer(BUCKET, AUTHFILE, TOKENFILE, body)
+#     return {"message": "polling successful"}
+
+# @app.route('/todos/refresh', methods=['GET'], authorizer=jwt_auth)
+# def refresh():
+#     googleAuth.refreshAccessTokenToAuthServer(BUCKET, TOKENFILE, AUTHFILE)
+#     return {"message": "access token refreshed"}
 
 
 if __name__ == '__main__':

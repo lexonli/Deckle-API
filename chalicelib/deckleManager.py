@@ -6,6 +6,7 @@ import logging
 from datetime import datetime
 import time
 import pytz
+from uuid import uuid4
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -24,21 +25,42 @@ class Timespace:
 		self.task = task
 
 	@classmethod
-	def fromEvent(cls, event, username):
+	def asEvent(cls, event, username):
 		task = {}
+		# obtain start and end datetimes
 		start = datetime.strptime(event[1], FORMAT)
 		end = datetime.strptime(event[2], FORMAT)
-		task["deadline"] = event[2]
+
+		# create task data
+		task["deadline"] = event[2] #note: we're setting deadline as the end datetime string
 		task["metadata"] = {}
 		task["username"] = username
 		task["description"] = event[0]
-		durationDelta = end - start
-		task["duration"] = durationDelta.seconds // 60
-		# maybe we should generate a uuid for events as well?
-		task["uid"] = event[0] + event[1] + event[2]
+		duration_delta = end - start
+		task["duration"] = duration_delta.seconds // 60
+		task["uid"] = str(uuid4())
 		task["state"] = "event"
 
 		return cls(start=start, end=end, task=task)
+
+	@classmethod
+	def asBreak(cls, timespace, username):
+		task = {}
+
+		start = timespace.start
+		end = timespace.end
+
+		task["deadline"] = datetime.strftime(end, FORMAT)
+		task["metadata"] = {}
+		task["username"] = username
+		task["description"] = "break"
+		duration_delta = end - start
+		task["duration"] = duration_delta.seconds // 60
+		task["uid"] = str(uuid4())
+		task["state"] = "break"
+
+		return cls(start=start, end=end, task=task)
+
 
 	def duration(self):
 		return self.end - self.start # time delta
@@ -64,6 +86,7 @@ def getTimespaces(events, currentDateTime):
 		for event in events:
 			eventStart = datetime.strptime(event[1], FORMAT)
 			eventEnd = datetime.strptime(event[2], FORMAT)
+			# create two timespaces by partitioning start to end
 			twoTimespaces = timespace.partition(eventStart, eventEnd)
 			timespaces.append(twoTimespaces[0])
 			timespace = twoTimespaces[1]
@@ -80,26 +103,29 @@ def allocate(timespaces, listOfTasks, events, username):
 		hasAvailableTask = True
 		while hasAvailableTask:
 			info = getNextTask(sortedTasks, timespace.duration())
+
 			# no possible task that fits the timespace
 			if info == None:
 				hasAvailableTask = False
-				# append an event into the list
+				# if the final slot in that timespace has space, we make it into a break
+				if timespace.start < timespace.end:
+					eventTimeSpaces.append(Timespace.asBreak(timespace, username))
+				# append the event into the list
 				if events:
-					print("appending")
-					eventTimeSpaces.append(Timespace.fromEvent(events.pop(0), username))
+					eventTimeSpaces.append(Timespace.asEvent(events.pop(0), username))
 			else:
 				matchedTask = info[0]
 				taskDuration = info[1] #time delta object
 				endTaskDatetime = timespace.start + taskDuration
 				eventTimeSpaces.append(Timespace(start=timespace.start, 
 													end=endTaskDatetime, task=matchedTask))
+				# change timespace start time
 				timespace.start = endTaskDatetime
 	while events:
-		print("appending again")
 		eventTimeSpaces.append(Timespace.fromEvent(events.pop(0)))
 	return eventTimeSpaces
 
-def timespaceToJsonDict(timespace):
+def timespaceToDeckle(timespace):
 	task = timespace.task
 	task["start"] = datetime.strftime(timespace.start, FORMAT)
 	task["end"] = datetime.strftime(timespace.end, FORMAT)
@@ -107,15 +133,11 @@ def timespaceToJsonDict(timespace):
 
 
 def deckleUpdate(eventTimeSpaces):
-	print(eventTimeSpaces)
 	deckleList = []
 	for eventTimeSpace in eventTimeSpaces:
-		deckleList.append(timespaceToJsonDict(eventTimeSpace))
+		deckleList.append(timespaceToDeckle(eventTimeSpace))
 	return deckleList
 
-def createTaskEvents(eventTimeSpaces, creds):
-	for eventTimeSpace in eventTimeSpaces:
-		createEvent(eventTimeSpace.task["description"], eventTimeSpace.start, eventTimeSpace.end, creds=creds)
 
 
 if __name__ == '__main__':
