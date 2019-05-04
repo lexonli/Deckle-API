@@ -30,7 +30,7 @@ class TodoDB(object):
 
 def validate_startline_deadline(startline, deadline):
     start_date = datetime.strptime(startline, FORMAT)
-    end_date = datetime.strptime(endline, FORMAT)
+    end_date = datetime.strptime(deadline, FORMAT)
     if start_date >= end_date:
         raise BadRequestError("item's startline is later or same as deadline")
 
@@ -50,7 +50,7 @@ class DynamoDBTodo(TodoDB):
         return response['Items']
 
     def add_item(self, description, username, startline = DEFAULT_STARTLINE, metadata=None, 
-                duration=DEFAULT_DURATION, deadline=DEFAULT_DEADLINE):
+                duration=DEFAULT_DURATION, deadline=DEFAULT_DEADLINE, priority=0, deck="miscellaneous"):
         validate_startline_deadline(startline, deadline)
         uid = str(uuid4())
         self._table.put_item(
@@ -61,6 +61,8 @@ class DynamoDBTodo(TodoDB):
                 'duration': duration,
                 'startline': startline,
                 'deadline': deadline,
+                'priority': priority,
+                'deck': deck,
                 'state': 'unstarted',
                 'metadata': metadata if metadata is not None else {},
             }
@@ -92,7 +94,7 @@ class DynamoDBTodo(TodoDB):
 
 
     def update_item(self, uid, username, description=None, state=None,
-                    metadata=None, duration=None, deadline=None, startline=None):
+                    metadata=None, duration=None, deadline=None, startline=None, priority=None, deck=None):
         # We could also use update_item() with an UpdateExpression.
         item = self.get_item(uid, username)
         if description is not None:
@@ -103,6 +105,10 @@ class DynamoDBTodo(TodoDB):
             item["Item"]['metadata'] = metadata
         if duration is not None:
             item["Item"]['duration'] = duration
+        if priority is not None:
+            item["Item"]['priority'] = priority
+        if deck is not None:
+            item["Item"]['deck'] = deck
         if deadline is not None and startline is not None:
             validate_startline_deadline(startline, deadline)
             item["Item"]['startline'] = startline
@@ -117,10 +123,9 @@ class DynamoDBTodo(TodoDB):
 
 
     def update_all_items(self, username, description=None, state=None,
-                        metadata=None, duration=None, deadline=None, startline=None):
+                        metadata=None, duration=None, deadline=None, startline=None, priority=None, deck=None):
         items = self.list_items(username)
         for item in items:
-            print(item)
             self.update_item(
                 uid=item["uid"], 
                 username=username, 
@@ -129,6 +134,8 @@ class DynamoDBTodo(TodoDB):
                 metadata=metadata,
                 duration=duration,
                 deadline=deadline,
-                startline=startline)
+                startline=startline,
+                priority=priority,
+                deck=deck)
                             
 

@@ -1,27 +1,27 @@
-import datetime
+from datetime import datetime, timedelta
 
 FORMAT = '%Y-%m-%d %H:%M'
-START = datetime.datetime.strptime("2019-01-01 00:00", FORMAT)
+START = datetime.strptime("2019-01-01 00:00", FORMAT)
 
 def sortTasks(listOfTasks):
 	tasks = []
 	for task in listOfTasks:
 		if task["state"] == "finished":
 			continue
-		deadline = datetime.datetime.strptime(task["deadline"], FORMAT)
-		diffInSeconds = (deadline - START).total_seconds()
-		score = diffInSeconds
+		deadline = datetime.strptime(task["deadline"], FORMAT)
+		seconds_till_deadline = (deadline - START).total_seconds()
+		score = (seconds_till_deadline, task["deck"], task["priority"])
 		tasks.append((score, task))
 	sortedTasks = sorted(tasks, key=lambda x: x[0])
 	return [item[1] for item in sortedTasks]
 
 def getNextTask(sortedTasks, realDuration):
-    for task in sortedTasks:
-        durationDelta = datetime.timedelta(minutes=int(task["duration"]))
-        if realDuration > durationDelta:
-            sortedTasks.remove(task)
-            return (task, durationDelta)
-    return None
+	for task in sortedTasks:
+		durationDelta = timedelta(minutes=int(task["duration"]))
+		if realDuration > durationDelta:
+			sortedTasks.remove(task)
+			return (task, durationDelta)
+	return None
 
 
 if __name__ == '__main__':

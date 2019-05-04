@@ -6,4 +6,4 @@ echo '{"events": [{"name":"teeetEvent", "start":"2019-04-29 10:00", "end":"2019-
 
 echo '{"deadline":"2019-04-31 10:00", "startline":"2019-04-30 00:00"}' | http PUT localhost:8000/todos/all Authorization:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZWZhdWx0IiwiaWF0IjoxNTU2MTIwMTE2LCJuYmYiOjE1NTYxMjAxMTYsImp0aSI6ImM1ZTQ1MmNlLTg1MDItNDU0Yi05OTZkLTk2NGQ5NmZmOTYzNSJ9.ShIZnYt2zlmdaqNEOrxbhIUTOY9GsF1TGeQoPkNrlRc
 
-echo '{"deadline":"2019-04-31 10:00", "startline":"2019-04-30 00:00"}' | http --timeout 300 PUT localhost:8000/todos/all Authorization:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZWZhdWx0IiwiaWF0IjoxNTU2MTIwMTE2LCJuYmYiOjE1NTYxMjAxMTYsImp0aSI6ImM1ZTQ1MmNlLTg1MDItNDU0Yi05OTZkLTk2NGQ5NmZmOTYzNSJ9.ShIZnYt2zlmdaqNEOrxbhIUTOY9GsF1TGeQoPkNrlRc
+echo '{"deadline":"2019-05-01 20:00", "startline":"2019-04-30 00:00", "priority":0, "deck":"miscellaneous"}' | http --timeout 300 PUT localhost:8000/todos/all Authorization:eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZWZhdWx0IiwiaWF0IjoxNTU2MTIwMTE2LCJuYmYiOjE1NTYxMjAxMTYsImp0aSI6ImM1ZTQ1MmNlLTg1MDItNDU0Yi05OTZkLTk2NGQ5NmZmOTYzNSJ9.ShIZnYt2zlmdaqNEOrxbhIUTOY9GsF1TGeQoPkNrlRc

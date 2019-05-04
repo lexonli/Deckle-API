@@ -40,6 +40,9 @@ class Timespace:
 		task["duration"] = duration_delta.seconds // 60
 		task["uid"] = str(uuid4())
 		task["state"] = "event"
+		task["priority"] = 0
+		task["deck"] = "event"
+		task["startline"] = event[1]
 
 		return cls(start=start, end=end, task=task)
 
@@ -58,6 +61,9 @@ class Timespace:
 		task["duration"] = duration_delta.seconds // 60
 		task["uid"] = str(uuid4())
 		task["state"] = "break"
+		task["priority"] = 0
+		task["deck"] = "break"
+		task["startline"] = datetime.strftime(start, FORMAT)
 
 		return cls(start=start, end=end, task=task)
 
@@ -81,7 +87,9 @@ def getTimespaces(events, currentDateTime):
 	timespaces = []
 	if events:
 		# make sure events are sorted
-		events.sort(key=lambda x: x[1])
+		# events.sort(key=lambda x: x[1])
+		logger.info(events)
+		print(events)
 		# generate timespaces
 		for event in events:
 			eventStart = datetime.strptime(event[1], FORMAT)
@@ -96,6 +104,7 @@ def getTimespaces(events, currentDateTime):
 
 
 def allocate(timespaces, listOfTasks, events, username):
+	# events.sort(key=lambda x: x[1])
 	sortedTasks = sortTasks(listOfTasks)
 	eventTimeSpaces = []
 	isLast = False

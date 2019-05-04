@@ -5,7 +5,7 @@ import boto3
 import logging
 
 ### tasks response schema reference
-# [{'deadline': '2019-4-29 10:0', 'metadata': {}, 'username': 'default', 'description': 'COMP 3 Week 5 SVMs and decision boundaries Practical', 'duration': Decimal('60'), 'uid': '0a04e54d-b77d-4fcb-8dd5-57b607c74c2e', 'state': 'unstarted'}]
+# [{'deadline': '2019-4-29 10:0', 'metadata': {}, 'username': 'default', 'description': 'COMP 3 Week 5 SVMs and decision boundaries Practical', 'duration': Decimal('60'), 'uid': '0a04e54d-b77d-4fcb-8dd5-57b607c74c2e', 'state': 'unstarted', 'startline':'2019-01-04 10:00'}]
 # i.e. array of json objects with columns: 
 # "deadline", "metadata", "username", "description", "duration", "uid", "state"
 
@@ -133,14 +133,19 @@ def get_todos():
 def add_new_todo():
     body = app.current_request.json_body
     username = get_authorized_username(app.current_request)
-    return get_app_db().add_item(
-        username = username,
-        description=body['description'],
-        metadata=body.get('metadata'),
-        duration = body['duration'],
-        deadline = body['deadline'],
-        startline = body['startline']
-    )
+    try:
+        return get_app_db().add_item(
+            username = username,
+            description=body['description'],
+            metadata=body.get('metadata'),
+            duration = body['duration'],
+            deadline = body['deadline'],
+            startline = body['startline'],
+            priority = body['priority'],
+            deck = body['deck']
+        )
+    except TypeError:
+        raise BadRequestError("Not enough arguments for adding item")
 
 
 @app.route('/todos/{uid}', methods=['GET'], authorizer=jwt_auth)
@@ -167,6 +172,8 @@ def update_todo(uid):
         duration = body.get('duration'),
         deadline = body.get('deadline'),
         startline = body.get('startline'),
+        priority = body.get('priority'),
+        deck = body.get('deck'),
         username=username)
     return {"message": "Success: updated"}
 
@@ -181,6 +188,8 @@ def update_all_todos():
         duration = body.get('duration'),
         deadline = body.get('deadline'),
         startline = body.get('startline'),
+        priority = body.get('priority'),
+        deck = body.get('deck'),
         username=username)
     return {"message": "Success: updated all"}
 
