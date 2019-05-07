@@ -1,12 +1,13 @@
+import logging
+from datetime import datetime
+
+import pytz
+from uuid import uuid4
+
 from .events import getEvents, credentials
 from .sort import getNextTask, sortTasks
 # from events import getEvents, credentials
 # from sort import getNextTask, sortTasks
-import logging
-from datetime import datetime
-import time
-import pytz
-from uuid import uuid4
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -1,8 +1,10 @@
-from chalice import Chalice, AuthResponse, BadRequestError
-from chalicelib import db, sort, events, deckleManager, googleAuth, auth
 import os
-import boto3
 import logging
+
+import boto3
+from chalice import Chalice, AuthResponse, BadRequestError
+
+from chalicelib import db, sort, events, deckleManager, googleAuth, auth
 
 ### tasks response schema reference
 # [{'deadline': '2019-4-29 10:0', 'metadata': {}, 'username': 'default', 'description': 'COMP 3 Week 5 SVMs and decision boundaries Practical', 'duration': Decimal('60'), 'uid': '0a04e54d-b77d-4fcb-8dd5-57b607c74c2e', 'state': 'unstarted', 'startline':'2019-01-04 10:00'}]

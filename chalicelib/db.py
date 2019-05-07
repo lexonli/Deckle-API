@@ -1,7 +1,7 @@
-from uuid import uuid4
-from chalice import BadRequestError
 from datetime import datetime
 
+from uuid import uuid4
+from chalice import BadRequestError
 from boto3.dynamodb.conditions import Key
 
 
