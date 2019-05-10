@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 from uuid import uuid4
@@ -76,15 +76,16 @@ class Timespace:
 		return (Timespace(start=self.start, end=startCut), 
 				Timespace(start=endCut, end=self.end))
 
-def getTimespaces(events, currentDateTime):
+def getTimespaces(events, currentDateTime, days):
 	"""
 	param: List of 3-tuple: (name, startTimeString, endTimeString)
 	rtype: List of timespaces
 	"""
+	days = int(days)
 	# initial timespace
 	startDateTime = datetime.strptime(currentDateTime, URL_FORMAT)
 	logger.info(startDateTime)
-	timespace = Timespace(start=startDateTime, end=startDateTime.replace(hour=23, minute=59))
+	timespace = Timespace(start=startDateTime, end=(startDateTime + timedelta(days=days)).replace(hour=23, minute=59))
 	timespaces = []
 	if events:
 		# make sure events are sorted

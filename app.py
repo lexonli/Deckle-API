@@ -109,15 +109,15 @@ def jwt_auth(auth_request):
 def get_authorized_username(current_request):
     return current_request.context['authorizer']['principalId']
 
-@app.route('/todos/decklelist/{startDateTime}', methods=['POST'], authorizer=jwt_auth)
-def get_decklelist(startDateTime):
+@app.route('/todos/decklelist/{startDateTime}/{days}', methods=['POST'], authorizer=jwt_auth)
+def get_decklelist(startDateTime, days):
     body = app.current_request.json_body
     username = get_authorized_username(app.current_request)
 
     tasks = get_app_db().list_items(username=username)
 
     eventsList = events.getEventsFromJSON(body)
-    timespaces = deckleManager.getTimespaces(eventsList, startDateTime)
+    timespaces = deckleManager.getTimespaces(eventsList, startDateTime, days)
 
     eventTimeSpaces = deckleManager.allocate(timespaces, tasks, eventsList, username)
     deckleList = deckleManager.deckleUpdate(eventTimeSpaces)
