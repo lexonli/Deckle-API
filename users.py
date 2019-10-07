@@ -32,6 +32,18 @@ def create_user(stage):
     }
     table.put_item(Item=item)
 
+def create_user_with_credentials(username, password, stage="dev"):
+    table_name = get_table_name(stage)
+    table = boto3.resource('dynamodb').Table(table_name)
+    password_fields = encode_password(password)
+    item = {
+        'username': username,
+        'hash': password_fields['hash'],
+        'salt': Binary(password_fields['salt']),
+        'rounds': password_fields['rounds'],
+        'hashed': Binary(password_fields['hashed']),
+    }
+    table.put_item(Item=item)
 
 def encode_password(password, salt=None):
     if salt is None:

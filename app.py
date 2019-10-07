@@ -5,6 +5,7 @@ import boto3
 from chalice import Chalice, AuthResponse, BadRequestError
 
 from chalicelib import db, sort, events, deckleManager, googleAuth, auth
+from users import create_user_with_credentials
 
 ### tasks response schema reference
 # [{'deadline': '2019-4-29 10:0', 'metadata': {}, 'username': 'default', 'description': 'COMP 3 Week 5 SVMs and decision boundaries Practical', 'duration': Decimal('60'), 'uid': '0a04e54d-b77d-4fcb-8dd5-57b607c74c2e', 'state': 'unstarted', 'startline':'2019-01-04 10:00'}]
@@ -62,6 +63,7 @@ def get_app_db():
     if _DB is None:
         _DB = db.DynamoDBTodo(
             boto3.resource('dynamodb').Table(
+                # taken from the aws environment
                 os.environ['APP_TABLE_NAME'])
             )
     return _DB
@@ -70,6 +72,7 @@ def get_users_db():
     global _USER_DB
     if _USER_DB is None:
         _USER_DB = boto3.resource('dynamodb').Table(
+            # taken from the aws environment
             os.environ['USERS_TABLE_NAME'])
     return _USER_DB
 
@@ -97,6 +100,15 @@ def login():
         return jwt_token.decode("utf-8")
     except KeyError:
         raise BadRequestError("No such user in the database.")
+
+@app.route('/create_user', methods=['POST'])
+def create_user():
+    body = app.current_request.json_body
+    try:
+        create_user_with_credentials(body['username'], body['password'])
+        return {'status': "Successfully added user"}
+    except KeyError:
+        raise BadRequestError("No username or password in json data")
 
 
 @app.authorizer()
